@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.params import Body
 
 ## Using the library "pydantic" to define how our schema should look like
@@ -11,7 +11,7 @@ app = FastAPI()
 class Post(BaseModel):      # does the validation part for the user input
     Title: str
     Content: str
-    ID: Optional[int] = None
+    ID: int
 
 # A decorator is a function that take in functions 
 # as their argument, and extends the behaviour of 
@@ -35,14 +35,16 @@ def find_post(id):
 def loggedIn():
     return {"UserName":"Welcome"}
 
+
 ## CREATE
 
-@app.post("/posts")
+@app.post("/posts", status_code = status.HTTP_201_CREATED)
 def create_posts(post:Post):
-    my_posts.append(post.dict())
+    my_posts.append(post.model_dump())
     return {"data":my_posts}
 
-## READ
+
+## READs
 
 @app.get("/posts")
 def get_posts():
@@ -59,11 +61,33 @@ def get_post(id: int):      ## Fast API performing the validation
     except:
         return {"post_detail":"post with the given ID doesn't exist"}
 
+
+
+
+
 ## UPDATE
 
-## UPDATE using ID
 
-## DELETE   
+## UPDATE using ID
+@app.put("/posts/{id}")
+def update_post(id:int, post: Post):    ## it is a function annotation after :
+    for i, p in enumerate(my_posts):
+        if p["ID"] == id:
+            my_posts[i] = post.model_dump()
+        return {"Message":f"ID {id} had been updated using PUT"}
+    return "ID {id} does not exist"
+## DELETE
+# When 204 is sent, we don't send back any data in form of messages   
+# @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/posts/{id}")
+def delete_posts(id : int):
+    for i,p in enumerate(my_posts):
+        if p["ID"]==id:
+            my_posts.pop(i) 
+            return {"Message":f"Post {id} Removed"}
+    return {"Message":f"Post with ID {id} does not exist"}
+            # break
+
 
 ## The order of functions matters w.r.t. the URL pathways
 ## If stuck with and error, try changing the order of the \
