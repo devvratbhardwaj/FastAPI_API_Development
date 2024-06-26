@@ -1,1 +1,1 @@
-## app folder turned into proper Python package
+## app folder turned into proper Python package just by creating this file
